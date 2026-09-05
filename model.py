@@ -14,9 +14,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # ============================================================
-# STEP 1: Dataset (heart.csv)
+# STEP 1: Dataset (loan.csv)
 # ============================================================
-df = pd.read_csv("dataset/heart.csv")
+df = pd.read_csv("dataset/loan.csv")
 
 print("===== STEP 1: DATASET =====")
 print("Dataset shape:", df.shape)
@@ -31,41 +31,54 @@ print(df.isnull().sum())
 # Original features are kept. New useful features are added.
 # ============================================================
 
-# Age groups: 0 = young, 1 = middle, 2 = senior, 3 = elderly
+# Age groups: 0 = young, 1 = middle, 2 = senior, 3 = older
 df["age_group"] = pd.cut(
     df["age"],
-    bins=[0, 40, 55, 65, 120],
+    bins=[0, 30, 40, 50, 100],
     labels=[0, 1, 2, 3],
 ).astype("float")
 
-# Cholesterol level: 0 = normal, 1 = borderline, 2 = high
-df["chol_level"] = pd.cut(
-    df["chol"],
-    bins=[0, 200, 239, 1000],
+# Income level: 0 = low, 1 = medium, 2 = high
+df["income_level"] = pd.cut(
+    df["income"],
+    bins=[0, 40000, 80000, 200000],
     labels=[0, 1, 2],
 ).astype("float")
 
-# Resting blood pressure level: 0 = normal, 1 = elevated, 2 = high
-df["bp_level"] = pd.cut(
-    df["trestbps"],
-    bins=[0, 120, 139, 300],
-    labels=[0, 1, 2],
+# Credit level: 0 = poor, 1 = fair, 2 = good, 3 = excellent
+df["credit_level"] = pd.cut(
+    df["credit_score"],
+    bins=[0, 580, 670, 740, 900],
+    labels=[0, 1, 2, 3],
 ).astype("float")
 
-# How close the max heart rate is to the age-predicted max
-df["max_hr_ratio"] = df["thalach"] / (220 - df["age"])
+# How large the loan is compared to income
+df["loan_to_income_ratio"] = df["loan_amount"] / df["income"]
 
 # All original columns except target, plus the new engineered features
 X = df.drop("target", axis=1)
 y = df["target"]
 
 print("\n===== STEP 2: FEATURE ENGINEERING =====")
-print("New features added: age_group, chol_level, bp_level, max_hr_ratio")
+print("New features added: age_group, income_level, credit_level, loan_to_income_ratio")
 print("Total features used:", X.shape[1])
 print("Feature names:")
 print(list(X.columns))
 print("\nSample after feature engineering:")
-print(X[["age", "age_group", "chol", "chol_level", "trestbps", "bp_level", "thalach", "max_hr_ratio"]].head())
+print(
+    X[
+        [
+            "age",
+            "age_group",
+            "income",
+            "income_level",
+            "credit_score",
+            "credit_level",
+            "loan_amount",
+            "loan_to_income_ratio",
+        ]
+    ].head()
+)
 
 # ============================================================
 # STEP 3: Data preprocessing
@@ -145,7 +158,7 @@ sns.heatmap(
 )
 plt.xlabel("Predicted")
 plt.ylabel("Actual")
-plt.title("Confusion Matrix")
+plt.title("Loan Approval Confusion Matrix")
 plt.savefig("confusion_matrix.png", bbox_inches="tight")
 plt.close()
 print("\nConfusion matrix image saved as confusion_matrix.png")
